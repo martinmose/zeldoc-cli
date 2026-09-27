@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 description = "Command-line client for Zeldoc.ai"
 repository = "https://github.com/martinmose/zeldoc-cli"
+license = "MIT"
 
 [dependencies]
 # Argument parsing

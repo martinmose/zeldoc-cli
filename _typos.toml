@@ -1,0 +1,5 @@
+# Words this project uses deliberately.
+
+[default.extend-words]
+# The copyright holder's surname in LICENSE.
+Mose = "Mose"

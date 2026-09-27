@@ -3,6 +3,13 @@
 The `zeldoc` command-line client for Zeldoc.ai. It talks to `https://api.zeldoc.ai/v1` with
 a Zeldoc.ai API key.
 
+## This repository is public
+The code and its whole history are public. Reference only public things: the
+`api.zeldoc.ai` endpoints and `docs.zeldoc.ai`. Never add internal hostnames or IP
+addresses, details of how Zeldoc.ai's infrastructure is built or protected, customer
+names, names of private repositories, or secrets, in code, comments, docs, tests or
+commit messages. A mistake cannot be undone by a later commit: the history keeps it.
+
 ## Endpoints
 - **Model metadata comes from `GET /v1/zeldoc/models`**, Zeldoc.ai's model catalog: mode,
   limits, the organization's prices and capabilities for every model the key can call. Don't
