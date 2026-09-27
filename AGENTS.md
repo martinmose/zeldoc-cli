@@ -1,0 +1,97 @@
+# Agent Instructions (Zeldoc CLI)
+
+The `zeldoc` command-line client for Zeldoc.ai. It talks to `https://api.zeldoc.ai/v1` with
+a Zeldoc.ai API key.
+
+## Endpoints
+- **Model metadata comes from `GET /v1/zeldoc/models`**, Zeldoc.ai's model catalog: mode,
+  limits, the organization's prices and capabilities for every model the key can call. Don't
+  use `/v1/models` for metadata: it only lists names, and aliases such as `zdev` have no
+  limits there.
+- **Search is `POST /v1/search/zeldoc-search`.**
+
+## Build & Verification Commands
+Run inside `flox activate`, in this order: `cargo fmt -> cargo clippy -> cargo test`.
+- **Formatting:** `cargo fmt`
+- **Linting:** `cargo clippy --all-targets -- -D warnings`
+- **Tests:** `cargo test`
+- **Typos:** `typos`
+- **Try it:** `cargo run -- models`, `cargo run -- search <query>`. Set `ZELDOC_CONFIG_DIR` to a
+  temporary directory when trying `auth login`/`logout`, so the real saved key is untouched.
+
+## Releasing
+Releases are built by [cargo-dist](https://opensource.axo.dev/cargo-dist/) (`dist`, pinned in
+the flox environment).
+1. Bump `version` in `Cargo.toml`, run `cargo build` so `Cargo.lock` follows, commit.
+2. Tag and push: `git tag v0.2.0 && git push origin v0.2.0`.
+3. `.github/workflows/release.yml` builds the five targets, the shell and PowerShell
+   installers and checksums, and publishes a GitHub Release. The installer URLs in
+   README.md always point at the latest release.
+
+`release.yml` is generated: never edit it by hand. Change `dist-workspace.toml` (targets,
+installers, install path) and run `dist generate`; CI fails if the workflow is out of date.
+To upgrade cargo-dist, bump it in `.flox/env/manifest.toml` and `cargo-dist-version`
+together, then run `dist init --yes`.
+
+## Layout
+A library (`src/lib.rs`) with a thin binary (`src/main.rs`), feature folders, and **every
+struct and enum in its own file**.
+
+```
+src/
+  main.rs                   parse arguments, run, turn errors into exit status 1
+  cli.rs, command.rs        the clap root (`Cli`) and the subcommand enum (`Command`)
+  constants.rs              API paths, docs URL, environment variable names
+  api_request_handler.rs    authenticated HTTP requests, JSON decoding
+  api_request_error.rs      `ApiRequestError`, parsing of API error bodies
+  credentials/              key resolution and storage (`CredentialsStore`), `CredentialsError`
+    data_transfer_objects/  `ApiKeySecretDTO`, `CredentialsFileDTO`
+  auth/auth_command.rs      `zeldoc auth ...`
+  models/                   `zeldoc models`
+    models_command.rs       clap arguments, `run`, filtering
+    models_service.rs       `ModelsService` trait + `ModelsServiceImpl`
+    models_table.rs         table output
+    data_transfer_objects/  `ModelDTO`, `ModelIdDTO`, `ModelModeDTO`, ... one per file
+  search/                   `zeldoc search`
+    search_command.rs, search_service.rs, search_results_text.rs
+    data_transfer_objects/  `SearchResponseDTO`, `SearchResultDTO`
+    request_parameters/     `SearchParameters`, `TimeRange`
+```
+
+A new feature gets its own folder with `<feature>_command.rs`, `<feature>_service.rs` (trait +
+`Impl` taking an `ApiRequestHandler`), `data_transfer_objects/` and, if it sends a body,
+`request_parameters/`. `mod.rs` files only declare modules.
+
+## Conventions
+- **No abbreviated identifiers:** `response` not `resp`, `api_key` not `key` where it is
+  ambiguous.
+- **Naming:** API types end in `DTO` (`ModelDTO`), request bodies in `Parameters`
+  (`SearchParameters`); file names follow the type (`model_dto.rs`).
+- **Strong types everywhere:**
+  - Identifiers are newtypes (`ModelIdDTO(pub String)` with `From<String>` and `Display`),
+    never a raw `String`.
+  - A value from a known set is an enum; when the API may add values, keep an
+    `#[serde(untagged)] Unknown(String)` variant (`ModelModeDTO`, `ReasoningEffortDTO`) so a
+    new value does not fail the whole response.
+  - Money is `rust_decimal::Decimal`, never `f64` or `String`.
+  - Strings stay strings only for free text, and for values from many search engines where
+    one bad value must not fail the response (search result `url` and `date`).
+- **Errors:** services and the credentials store return `thiserror` enums (`ApiRequestError`,
+  `CredentialsError`), so callers can match on them (`is_auth_failure`). `anyhow` is only used
+  in the `*_command.rs` files and `main.rs`, to add context for the user.
+- **Tests** sit in a `#[cfg(test)] mod tests` at the bottom of the file they test; shared
+  fixtures in a `#[cfg(test)]` module (`models/test_catalog.rs`).
+- **Output:** results go to stdout, messages about the run (`No results.`) to stderr. Every
+  listing command has `--json`, which prints a normalized array, not the raw API response.
+  Rendering functions take `&mut impl Write` so they can be tested without a network.
+- **Exit status:** 0 on success, 1 on any error. `auth status` also exits 1 when there is no
+  usable key, so scripts and agents can check it.
+- **The API key never appears in arguments, logs or errors.** Read it from the environment, the
+  credentials file, a hidden prompt or stdin, and keep it in an `ApiKeySecretDTO`, whose
+  `Debug` is redacted. Show it only through `masked()`; `expose()` is for sending it and for
+  `auth token`, whose job is to print it.
+- **clap help text lives on the `Command` variants**, not on the `*Command` argument structs:
+  a doc comment on the struct would compete with the variant's. Use `//` comments there.
+- **Help text is documentation for agents.** Agents learn the CLI from `--help`, so doc comments
+  on commands and flags must be accurate and say what a flag really does (e.g. which search
+  filters are not guaranteed).

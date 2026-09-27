@@ -1,0 +1,49 @@
+schema-version = "1.12.0"
+
+[install]
+rustc.pkg-path = "rustc"
+rustc.version = "1.94.1"
+rustc.outputs = "all"
+
+cargo.pkg-path = "cargo"
+cargo.version = "1.94.1"
+
+rustfmt.pkg-path = "rustfmt"
+rustfmt.version = "1.94.1"
+
+clippy.pkg-path = "clippy"
+clippy.version = "1.94.1"
+
+# Generates the release workflow (dist init / dist generate). The version must
+# match cargo-dist-version in dist-workspace.toml. Not packaged for x86_64-darwin;
+# its own group because its nixpkgs revision differs from the pinned toolchain.
+cargo-dist.pkg-path = "cargo-dist"
+cargo-dist.version = "0.33.0"
+cargo-dist.systems = ["aarch64-darwin", "aarch64-linux", "x86_64-linux"]
+cargo-dist.pkg-group = "release"
+
+typos.pkg-path = "typos"
+typos.version = "1.46.0"
+
+[hook]
+on-activate = '''
+  rm -f "$FLOX_ENV_PROJECT/target/.rustc_info.json"
+'''
+
+[profile]
+common = '''
+  # Flox sets LD_AUDIT to ld-floxlib.so which exhausts glibc static TLS slots,
+  # breaking rustc. Wrap cargo/rustc/clippy to clear it before invocation.
+  alias cargo="LD_AUDIT= cargo"
+  alias rustc="LD_AUDIT= rustc"
+  alias cargo-clippy="LD_AUDIT= cargo-clippy"
+  alias rustfmt="LD_AUDIT= rustfmt"
+'''
+
+[options]
+systems = [
+  "aarch64-darwin",
+  "aarch64-linux",
+  "x86_64-darwin",
+  "x86_64-linux",
+]
