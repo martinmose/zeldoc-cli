@@ -1,6 +1,8 @@
 use reqwest::StatusCode;
 use thiserror::Error;
 
+use crate::constants::api;
+
 /// Longest raw response body quoted in an error when it has no JSON message.
 const MAX_ERROR_BODY_CHARACTERS: usize = 300;
 
@@ -8,12 +10,8 @@ const MAX_ERROR_BODY_CHARACTERS: usize = 300;
 pub enum ApiRequestError {
     #[error("could not create the HTTP client")]
     ClientSetup(#[source] reqwest::Error),
-    #[error("could not reach {base_url}")]
-    Network {
-        base_url: String,
-        #[source]
-        source: reqwest::Error,
-    },
+    #[error("could not reach {}", api::BASE_URL)]
+    Network(#[source] reqwest::Error),
     #[error("{}", describe_failure(.status, .message))]
     FailedWithApiResponse {
         status: StatusCode,

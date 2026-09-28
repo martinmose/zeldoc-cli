@@ -156,7 +156,6 @@ and keep personal or confidential information out of queries.
 | Variable | Default | Purpose |
 |---|---|---|
 | `ZELDOC_API_KEY` | | API key; overrides the saved key |
-| `ZELDOC_BASE_URL` | `https://api.zeldoc.ai/v1` | API address, for pointing at another gateway |
 | `ZELDOC_CONFIG_DIR` | platform config directory + `/zeldoc` | Where the saved key lives |
 
 ## License

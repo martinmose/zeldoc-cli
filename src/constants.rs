@@ -1,7 +1,9 @@
 /// Addresses and paths of the Zeldoc.ai API.
 pub mod api {
-    /// The gateway's OpenAI-compatible API. ZELDOC_BASE_URL overrides it.
-    pub const DEFAULT_BASE_URL: &str = "https://api.zeldoc.ai/v1";
+    /// The gateway's OpenAI-compatible API. Deliberately not configurable: the
+    /// CLI sends the API key to it, and a variable that redirected it would let
+    /// anything that can set the environment collect the key.
+    pub const BASE_URL: &str = "https://api.zeldoc.ai/v1";
     /// The model catalog. Unlike `/v1/models`, which only lists names, it has
     /// limits, prices and capabilities.
     pub const MODEL_CATALOG_PATH: &str = "/zeldoc/models";
@@ -14,8 +16,6 @@ pub mod api {
 pub mod environment {
     /// The API key; takes precedence over the saved key.
     pub const API_KEY: &str = "ZELDOC_API_KEY";
-    /// Overrides `api::DEFAULT_BASE_URL`, for pointing at another gateway.
-    pub const BASE_URL: &str = "ZELDOC_BASE_URL";
     /// Overrides where the saved key lives.
     pub const CONFIG_DIRECTORY: &str = "ZELDOC_CONFIG_DIR";
 }
