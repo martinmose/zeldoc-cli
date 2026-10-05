@@ -10,6 +10,7 @@ use super::search_results_text;
 use super::search_service::{SearchService, SearchServiceImpl};
 use crate::api_request_handler::ApiRequestHandler;
 use crate::credentials::credentials_store;
+use crate::credentials::data_transfer_objects::profile_name_dto::ProfileNameDTO;
 
 // `zeldoc search`. Its help text is on `Command::Search`.
 #[derive(Args)]
@@ -46,8 +47,8 @@ pub struct SearchCommand {
 }
 
 impl SearchCommand {
-    pub fn run(self) -> Result<ExitCode> {
-        let api_key = credentials_store::require_api_key()?;
+    pub fn run(self, profile: Option<&ProfileNameDTO>) -> Result<ExitCode> {
+        let api_key = credentials_store::require_api_key(profile)?;
         let service = SearchServiceImpl::new(ApiRequestHandler::new(api_key.secret)?);
         let mut results = service.search(&self.parameters())?;
         if let Some(limit) = self.limit {

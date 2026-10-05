@@ -16,6 +16,8 @@ commit messages. A mistake cannot be undone by a later commit: the history keeps
   use `/v1/models` for metadata: it only lists names, and aliases such as `zdev` have no
   limits there.
 - **Search is `POST /v1/search/zeldoc-search`.**
+- **Usage is `GET /v1/zeldoc/usage?period=<today|week|month|last_month>`**: what the key
+  itself used. It reports one key only, never the organization's other keys.
 
 ## Build & Verification Commands
 Run inside `flox activate`, in this order: `cargo fmt -> cargo clippy -> cargo test`.
@@ -23,7 +25,7 @@ Run inside `flox activate`, in this order: `cargo fmt -> cargo clippy -> cargo t
 - **Linting:** `cargo clippy --all-targets -- -D warnings`
 - **Tests:** `cargo test`
 - **Typos:** `typos`
-- **Try it:** `cargo run -- models`, `cargo run -- search <query>`. Set `ZELDOC_CONFIG_DIR` to a
+- **Try it:** `cargo run -- models`, `cargo run -- usage`, `cargo run -- search <query>`. Set `ZELDOC_CONFIG_DIR` to a
   temporary directory when trying `auth login`/`logout`, so the real saved key is untouched.
 
 ## Releasing
@@ -51,14 +53,20 @@ src/
   constants.rs              API paths, docs URL, environment variable names
   api_request_handler.rs    authenticated HTTP requests, JSON decoding
   api_request_error.rs      `ApiRequestError`, parsing of API error bodies
-  credentials/              key resolution and storage (`CredentialsStore`), `CredentialsError`
-    data_transfer_objects/  `ApiKeySecretDTO`, `CredentialsFileDTO`
+  credentials/              key resolution and storage (`CredentialsStore`), `CredentialsError`,
+                            `.zeldoc-profile` pins (`ProfilePin`)
+    data_transfer_objects/  `ApiKeySecretDTO`, `CredentialsFileDTO`, `ProfileDTO`, `ProfileNameDTO`
   auth/auth_command.rs      `zeldoc auth ...`
   models/                   `zeldoc models`
     models_command.rs       clap arguments, `run`, filtering
     models_service.rs       `ModelsService` trait + `ModelsServiceImpl`
     models_table.rs         table output
     data_transfer_objects/  `ModelDTO`, `ModelIdDTO`, `ModelModeDTO`, ... one per file
+  text_table.rs             aligned text tables (`models`, `usage`)
+  usage/                    `zeldoc usage`
+    usage_command.rs, usage_service.rs, usage_report_text.rs
+    data_transfer_objects/  `UsageReportDTO`, `ModelUsageDTO`, `UsageTotalsDTO`, ...
+    request_parameters/     `UsagePeriod`
   search/                   `zeldoc search`
     search_command.rs, search_service.rs, search_results_text.rs
     data_transfer_objects/  `SearchResponseDTO`, `SearchResultDTO`
@@ -93,6 +101,11 @@ A new feature gets its own folder with `<feature>_command.rs`, `<feature>_servic
   Rendering functions take `&mut impl Write` so they can be tested without a network.
 - **Exit status:** 0 on success, 1 on any error. `auth status` also exits 1 when there is no
   usable key, so scripts and agents can check it.
+- **Key precedence** (`credentials_store.rs`): `--profile`/`ZELDOC_PROFILE`, then a
+  `.zeldoc-profile` pin, then `ZELDOC_API_KEY`, then the default profile. An unsaved
+  requested or pinned profile is an error, never a fall-through to another key: keys
+  belong to different customers. Change the order only together with the README and
+  `opencode-zeldoc`, which reads pins the same way.
 - **The API key never appears in arguments, logs or errors.** Read it from the environment, the
   credentials file, a hidden prompt or stdin, and keep it in an `ApiKeySecretDTO`, whose
   `Debug` is redacted. Show it only through `masked()`; `expose()` is for sending it and for

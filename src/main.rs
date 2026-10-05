@@ -5,7 +5,8 @@ use clap::Parser;
 use zeldoc::cli::Cli;
 
 fn main() -> ExitCode {
-    match Cli::parse().command.run() {
+    let cli = Cli::parse();
+    match cli.command.run(cli.profile.as_ref()) {
         Ok(code) => code,
         // Piping into `head` closes stdout early; that is not a failure.
         Err(error) if is_broken_pipe(&error) => ExitCode::SUCCESS,

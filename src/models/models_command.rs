@@ -9,6 +9,7 @@ use super::models_service::{ModelsService, ModelsServiceImpl};
 use super::models_table;
 use crate::api_request_handler::ApiRequestHandler;
 use crate::credentials::credentials_store;
+use crate::credentials::data_transfer_objects::profile_name_dto::ProfileNameDTO;
 
 // `zeldoc models`. Its help text is on `Command::Models`.
 #[derive(Args)]
@@ -24,8 +25,8 @@ pub struct ModelsCommand {
 }
 
 impl ModelsCommand {
-    pub fn run(self) -> Result<ExitCode> {
-        let api_key = credentials_store::require_api_key()?;
+    pub fn run(self, profile: Option<&ProfileNameDTO>) -> Result<ExitCode> {
+        let api_key = credentials_store::require_api_key(profile)?;
         let service = ModelsServiceImpl::new(ApiRequestHandler::new(api_key.secret)?);
         let models = filter_by_mode(service.list()?, self.mode.as_deref());
         if models.is_empty() {

@@ -1,9 +1,13 @@
-use std::path::PathBuf;
+use super::data_transfer_objects::profile_name_dto::ProfileNameDTO;
+use super::profile_selection::ProfileSelection;
 
 /// Where the API key the CLI uses came from.
 pub enum ApiKeySource {
     /// The ZELDOC_API_KEY environment variable.
     Environment,
-    /// The credentials file written by `zeldoc auth login`.
-    File(PathBuf),
+    /// A profile saved by `zeldoc auth login`, and what picked it.
+    Profile {
+        name: ProfileNameDTO,
+        selection: ProfileSelection,
+    },
 }

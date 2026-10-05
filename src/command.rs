@@ -4,13 +4,15 @@ use anyhow::Result;
 use clap::Subcommand;
 
 use crate::auth::auth_command::AuthCommand;
+use crate::credentials::data_transfer_objects::profile_name_dto::ProfileNameDTO;
 use crate::models::models_command::ModelsCommand;
 use crate::search::search_command::SearchCommand;
+use crate::usage::usage_command::UsageCommand;
 
 // Help text lives on the variants: clap shows it for `zeldoc <command> --help`.
 #[derive(Subcommand)]
 pub enum Command {
-    /// Save, check, or remove the API key the CLI uses
+    /// Save, switch, check or remove the API keys the CLI uses
     #[command(subcommand)]
     Auth(AuthCommand),
     /// List the models your API key can use
@@ -23,14 +25,27 @@ pub enum Command {
     /// the EU. Keep personal and confidential information out of queries.
     /// Searches count towards your key's rate limit but are not billed.
     Search(SearchCommand),
+    /// Show what your API key has used: requests, tokens and cost per model
+    ///
+    /// Reports only the key the CLI uses, not other keys of your
+    /// organization; the dashboard at app.zeldoc.ai has the whole
+    /// organization. Periods are in UTC. Also shows the key's monthly spend
+    /// limit, the organization's prepaid credits and your ZDev allowance,
+    /// when there are any. Costs are in USD, as the dashboard shows them;
+    /// Zeldoc's own models are covered by the subscription and cost 0.
+    /// Requests can take a minute to show up.
+    Usage(UsageCommand),
 }
 
 impl Command {
-    pub fn run(self) -> Result<ExitCode> {
+    /// Run the command; `profile` is the profile asked for with `--profile`
+    /// or ZELDOC_PROFILE.
+    pub fn run(self, profile: Option<&ProfileNameDTO>) -> Result<ExitCode> {
         match self {
-            Self::Auth(command) => command.run(),
-            Self::Models(command) => command.run(),
-            Self::Search(command) => command.run(),
+            Self::Auth(command) => command.run(profile),
+            Self::Models(command) => command.run(profile),
+            Self::Search(command) => command.run(profile),
+            Self::Usage(command) => command.run(profile),
         }
     }
 }

@@ -4,7 +4,8 @@ Command-line client for [Zeldoc.ai](https://zeldoc.ai), the EU-sovereign LLM API
 
 It is small on purpose. It exposes the parts of Zeldoc.ai that are useful from a shell,
 and coding agents such as Claude Code, Codex, OpenCode or Pi can use it with no plugin:
-any agent that can run a command can list models or search the web through Zeldoc.ai.
+any agent that can run a command can list models, check its usage or search the web
+through Zeldoc.ai.
 
 ## Install
 
@@ -38,23 +39,67 @@ Save an API key once. It is checked against Zeldoc.ai before it is stored:
 zeldoc auth login
 ```
 
-The key is read from a hidden prompt, or from standard input when input is piped
+The key is saved as the profile `default`; see [One key per customer](#one-key-per-customer)
+for more than one key. The key is read from a hidden prompt, or from standard input when input is piped
 (`zeldoc auth login < key.txt`). Don't have a key yet? See
 [Generate an API key](https://docs.zeldoc.ai/connect-opencode#generate-an-api-key).
 
-`ZELDOC_API_KEY`, when set, takes precedence over the saved key, so existing setups keep
-working without a login.
+`ZELDOC_API_KEY`, when set, takes precedence over the default saved key, so existing
+setups keep working without a login.
 
 | Command | Does |
 |---|---|
-| `zeldoc auth login` | Checks and saves a key |
-| `zeldoc auth status` | Shows which key is in use (masked) and whether it works; exits 1 if not |
+| `zeldoc auth login` | Checks and saves a key, as profile `default` or the one given with `--profile` |
+| `zeldoc auth list` | Lists the saved profiles, marking the default and the one pinned for this folder |
+| `zeldoc auth use <profile>` | Makes a saved profile the default |
+| `zeldoc auth pin <profile>` | Pins the current folder to a profile (writes `.zeldoc-profile`) |
+| `zeldoc auth status` | Shows which key is in use (masked), why, and whether it works; exits 1 if not |
 | `zeldoc auth token` | Prints the key, for tools that read `ZELDOC_API_KEY` |
-| `zeldoc auth logout` | Deletes the saved key |
+| `zeldoc auth logout` | Deletes the saved key of the profile in use |
+
+### One key per customer
+
+If you work for several customers, each with their own Zeldoc.ai key, save each key under
+a profile name and pin each customer's repository to its profile:
+
+```bash
+zeldoc auth login --profile acme      # save Acme's key
+zeldoc auth login --profile globex    # save Globex's key
+
+cd ~/work/acme-app
+zeldoc auth pin acme                  # writes .zeldoc-profile containing "acme"
+zeldoc usage                          # uses Acme's key here and in every folder below
+```
+
+`.zeldoc-profile` holds only the profile name, never a key, so you can commit it. Everyone
+on the team then saves their own key under that name by running `zeldoc auth login` in
+the repository; with a pin and no `--profile`, `login` saves under the pinned name.
+
+The CLI picks the key in this order:
+
+1. `--profile <name>` (or `-P`), or the `ZELDOC_PROFILE` variable
+2. `.zeldoc-profile` in the current folder or the nearest folder above it
+3. `ZELDOC_API_KEY`
+4. the default profile: the first key you saved, or the one set with `zeldoc auth use`
+
+A pin wins over `ZELDOC_API_KEY`, so it still applies when your shell profile exports the
+variable. If a pin names a profile that is not saved, the CLI stops with an error instead
+of using another customer's key. On a machine with no saved keys, such as CI, pins are
+ignored and `ZELDOC_API_KEY` is used. `zeldoc auth status` shows which key is used and
+why.
+
+To hand the pinned key to other tools started in the repository, such as OpenCode or an
+OpenAI SDK, use [direnv](https://direnv.net) (Linux and macOS) with this `.envrc`:
+
+```bash
+export ZELDOC_API_KEY="$(zeldoc auth token)"
+```
+
+`zeldoc usage --all` reports the usage of every saved profile, one row each, with a total.
 
 ### Where the key is stored
 
-In `credentials.json` in the platform config directory:
+All saved keys are in `credentials.json` in the platform config directory:
 
 | Platform | Path |
 |---|---|
@@ -138,6 +183,29 @@ per 1 million tokens, and capabilities. `--json` adds cache prices and the accep
 The gateway's own `GET /v1/models` only lists names; it has no limits or prices for
 aliases such as `zdev`, which is why the CLI uses the catalog.
 
+## Show usage
+
+```bash
+zeldoc usage
+zeldoc usage --period today
+zeldoc usage --period last-month --json
+```
+
+Shows what your API key has used from Zeldoc.ai's usage endpoint
+(`GET /v1/zeldoc/usage`): requests, input, output and cached tokens, and cost per model,
+with a total. Costs are in USD, as the dashboard shows them; Zeldoc.ai's own models are
+covered by the subscription and cost 0. `--period` is `today`, `week`
+(the last 7 days), `month` (this calendar month, the default) or `last-month`, all in UTC.
+`--profile` picks another saved key, and `--all` reports every saved profile instead.
+When the key has a monthly spend limit, the report shows how much of it is used, and for
+organizations on prepaid credits, the credits left. For a key that belongs to a ZDev seat,
+it shows how much of the plan's monthly tokens are used. `--json` prints exact costs and cache
+writes.
+
+Only the key the CLI uses is reported, never other keys of your organization; the
+dashboard at [app.zeldoc.ai](https://app.zeldoc.ai) shows the whole organization. New
+requests can take a minute to appear.
+
 ## Search the web
 
 ```bash
@@ -155,7 +223,8 @@ and keep personal or confidential information out of queries.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `ZELDOC_API_KEY` | | API key; overrides the saved key |
+| `ZELDOC_PROFILE` | | Saved profile to use, like `--profile` |
+| `ZELDOC_API_KEY` | | API key; used where no profile is picked by `--profile`, `ZELDOC_PROFILE` or a pin |
 | `ZELDOC_CONFIG_DIR` | platform config directory + `/zeldoc` | Where the saved key lives |
 
 ## License

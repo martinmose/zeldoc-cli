@@ -2,11 +2,7 @@ use std::io::{self, Write};
 
 use super::data_transfer_objects::model_capabilities_dto::ModelCapabilitiesDTO;
 use super::data_transfer_objects::model_dto::ModelDTO;
-
-enum Align {
-    Left,
-    Right,
-}
+use crate::text_table::{self, Align};
 
 const COLUMNS: [(&str, Align); 7] = [
     ("MODEL", Align::Left),
@@ -21,7 +17,6 @@ const COLUMNS: [(&str, Align); 7] = [
 /// The models as an aligned table, one row per model; `-` where the catalog
 /// has no value.
 pub fn write_table(out: &mut impl Write, models: &[ModelDTO]) -> io::Result<()> {
-    let header = COLUMNS.map(|(title, _)| title.to_string());
     let rows: Vec<[String; 7]> = models
         .iter()
         .map(|model| {
@@ -36,27 +31,7 @@ pub fn write_table(out: &mut impl Write, models: &[ModelDTO]) -> io::Result<()> 
             ]
         })
         .collect();
-
-    let mut widths = [0; 7];
-    for row in std::iter::once(&header).chain(&rows) {
-        for (width, cell) in widths.iter_mut().zip(row) {
-            *width = (*width).max(cell.chars().count());
-        }
-    }
-
-    for row in std::iter::once(&header).chain(&rows) {
-        let cells: Vec<String> = row
-            .iter()
-            .zip(&widths)
-            .zip(&COLUMNS)
-            .map(|((cell, &width), (_, align))| match align {
-                Align::Left => format!("{cell:<width$}"),
-                Align::Right => format!("{cell:>width$}"),
-            })
-            .collect();
-        writeln!(out, "{}", cells.join("  ").trim_end())?;
-    }
-    Ok(())
+    text_table::write_table(out, &COLUMNS, &rows)
 }
 
 fn capability_names(capabilities: &ModelCapabilitiesDTO) -> Vec<&'static str> {

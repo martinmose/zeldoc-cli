@@ -3,7 +3,8 @@ use std::path::PathBuf;
 
 use thiserror::Error;
 
-use crate::constants::{api, environment};
+use super::data_transfer_objects::profile_name_dto::ProfileNameDTO;
+use crate::constants::{api, environment, files};
 
 #[derive(Debug, Error)]
 pub enum CredentialsError {
@@ -13,6 +14,25 @@ pub enum CredentialsError {
         api::API_KEY_DOCS_URL
     )]
     NoApiKey,
+    #[error(
+        "no API key is saved as profile `{name}`. Run `zeldoc auth login --profile {name}`, \
+         or `zeldoc auth list` to see the saved profiles"
+    )]
+    ProfileNotSaved { name: ProfileNameDTO },
+    #[error(
+        "{} picks profile `{name}`, but no API key is saved under that name. \
+         Run `zeldoc auth login` in this folder to save one",
+        .pin.display()
+    )]
+    PinnedProfileNotSaved { name: ProfileNameDTO, pin: PathBuf },
+    #[error(
+        "API keys are saved, but none is the default. Run `zeldoc auth use <profile>`, \
+         or add a {} file to this folder",
+        files::PROFILE_PIN
+    )]
+    NoActiveProfile,
+    #[error("{} does not name a valid profile: {reason}", .path.display())]
+    InvalidPin { path: PathBuf, reason: String },
     #[error(
         "could not find a config directory; set {}",
         environment::CONFIG_DIRECTORY

@@ -8,14 +8,25 @@ pub mod api {
     /// limits, prices and capabilities.
     pub const MODEL_CATALOG_PATH: &str = "/zeldoc/models";
     pub const SEARCH_PATH: &str = "/search/zeldoc-search";
+    /// What the API key itself used over a period.
+    pub const USAGE_PATH: &str = "/zeldoc/usage";
     pub const API_KEY_DOCS_URL: &str =
         "https://docs.zeldoc.ai/connect-opencode#generate-an-api-key";
 }
 
 /// Environment variables the CLI reads.
 pub mod environment {
-    /// The API key; takes precedence over the saved key.
+    /// An API key; used when neither ZELDOC_PROFILE, `--profile` nor a pin
+    /// file picks a saved profile.
     pub const API_KEY: &str = "ZELDOC_API_KEY";
+    /// The saved profile to use, like `--profile`.
+    pub const PROFILE: &str = "ZELDOC_PROFILE";
     /// Overrides where the saved key lives.
     pub const CONFIG_DIRECTORY: &str = "ZELDOC_CONFIG_DIR";
+}
+
+/// Files the CLI reads outside its config directory.
+pub mod files {
+    /// Pins a folder and the folders below it to a saved profile.
+    pub const PROFILE_PIN: &str = ".zeldoc-profile";
 }
