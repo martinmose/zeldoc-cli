@@ -40,3 +40,25 @@ jobs:
 
       - name: Run typos
         uses: crate-ci/typos@v1.50.1
+
+  test-other-platforms:
+    name: Test (${{ matrix.os }})
+    # Releases ship for macOS and Windows too; key storage, pin files and paths
+    # differ there.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache compiled dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run cargo test
+        run: cargo test
