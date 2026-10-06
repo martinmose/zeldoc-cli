@@ -73,10 +73,8 @@ impl ProfilePin {
 /// `echo acme > .zeldoc-profile`.
 fn decode(bytes: &[u8]) -> Option<String> {
     if let Some(utf16) = bytes.strip_prefix(&[0xFF, 0xFE]) {
-        let units: Vec<u16> = utf16
-            .chunks_exact(2)
-            .map(|pair| u16::from_le_bytes([pair[0], pair[1]]))
-            .collect();
+        let (pairs, _odd_byte) = utf16.as_chunks::<2>();
+        let units: Vec<u16> = pairs.iter().map(|pair| u16::from_le_bytes(*pair)).collect();
         return String::from_utf16(&units).ok();
     }
     let utf8 = bytes.strip_prefix(&[0xEF, 0xBB, 0xBF]).unwrap_or(bytes);
