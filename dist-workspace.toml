@@ -12,9 +12,11 @@ installers = ["shell", "powershell"]
 # Target platforms to build apps for (Rust target-triple syntax)
 targets = ["aarch64-apple-darwin", "aarch64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
 # Where installers put the binary: the XDG bin directory, falling back to
-# ~/.local/bin (%USERPROFILE%\.local\bin on Windows), as uv does. Most
-# people installing zeldoc have no Rust toolchain, so not ~/.cargo/bin.
-install-path = ["$XDG_BIN_HOME/", "$XDG_DATA_HOME/../bin", "~/.local/bin"]
+# ~/.local/bin (%USERPROFILE%\.local\bin on Windows). Most people installing
+# zeldoc have no Rust toolchain, so not ~/.cargo/bin. No "$XDG_DATA_HOME/../bin"
+# as uv has: the installer compares PATH entries as text, so with XDG_DATA_HOME
+# set it reported ~/.local/bin as missing from PATH and zeldoc as shadowed.
+install-path = ["$XDG_BIN_HOME/", "~/.local/bin"]
 # Where to host releases
 hosting = "github"
 # Whether to install an updater program
