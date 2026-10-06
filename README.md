@@ -12,17 +12,17 @@ through Zeldoc.ai.
 **macOS and Linux:**
 
 ```bash
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/martinmose/zeldoc-cli/releases/latest/download/zeldoc-installer.sh | sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/zeldoc/zeldoc-cli/releases/latest/download/zeldoc-installer.sh | sh
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-powershell -ExecutionPolicy Bypass -c "irm https://github.com/martinmose/zeldoc-cli/releases/latest/download/zeldoc-installer.ps1 | iex"
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/zeldoc/zeldoc-cli/releases/latest/download/zeldoc-installer.ps1 | iex"
 ```
 
 The installers download the prebuilt binary for your platform from the
-[latest release](https://github.com/martinmose/zeldoc-cli/releases/latest), check its
+[latest release](https://github.com/zeldoc/zeldoc-cli/releases/latest), check its
 checksum and put it in `~/.local/bin` (`%USERPROFILE%\.local\bin` on Windows), or in
 `$XDG_BIN_HOME` when that is set, adding the directory to your `PATH` if needed. Open a
 new terminal afterwards. No Rust toolchain is needed.
