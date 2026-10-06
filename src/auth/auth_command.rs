@@ -18,6 +18,7 @@ use crate::credentials::data_transfer_objects::profile_dto::ProfileDTO;
 use crate::credentials::data_transfer_objects::profile_name_dto::ProfileNameDTO;
 use crate::credentials::profile_pin::ProfilePin;
 use crate::credentials::profile_selection::ProfileSelection;
+use crate::key_details::key_details_command::KeyDetailsCommand;
 use crate::models::models_service::{ModelsService, ModelsServiceImpl};
 
 const TOKEN_EXAMPLES: &str = "\
@@ -77,6 +78,16 @@ pub enum AuthCommand {
     ///
     /// Exits with status 1 when there is no key or the key is rejected.
     Status,
+    /// Show the key fields your organization set on the API key
+    ///
+    /// Organizations can label their keys with fields such as a team, a
+    /// project or whether the key is private. Shows the key's name and each
+    /// of the organization's fields with this key's value, `-` where it has
+    /// none. Uses the key picked by `--profile`, the folder's
+    /// `.zeldoc-profile` file, ZELDOC_API_KEY or the default profile. The
+    /// fields are set in the dashboard at app.zeldoc.ai; the CLI only reads
+    /// them.
+    Fields(KeyDetailsCommand),
     /// Print the API key the CLI uses, for tools that read ZELDOC_API_KEY
     ///
     /// Prints the key the CLI would use here: picked by `--profile`, the
@@ -97,6 +108,7 @@ impl AuthCommand {
             Self::Use { name } => use_profile(&name),
             Self::Pin { name } => pin(&name),
             Self::Status => status(profile),
+            Self::Fields(command) => command.run(profile),
             Self::Token => token(profile),
         }
     }

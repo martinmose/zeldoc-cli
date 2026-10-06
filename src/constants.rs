@@ -10,6 +10,8 @@ pub mod api {
     pub const SEARCH_PATH: &str = "/search/zeldoc-search";
     /// What the API key itself used over a period.
     pub const USAGE_PATH: &str = "/zeldoc/usage";
+    /// The API key's own name and key field values.
+    pub const KEY_DETAILS_PATH: &str = "/zeldoc/key";
     pub const API_KEY_DOCS_URL: &str =
         "https://docs.zeldoc.ai/connect-opencode#generate-an-api-key";
 }

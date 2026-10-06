@@ -18,6 +18,8 @@ commit messages. A mistake cannot be undone by a later commit: the history keeps
 - **Search is `POST /v1/search/zeldoc-search`.**
 - **Usage is `GET /v1/zeldoc/usage?period=<today|week|month|last_month>`**: what the key
   itself used. It reports one key only, never the organization's other keys.
+- **Key fields are `GET /v1/zeldoc/key`**: the key's own name and its values for the
+  organization's key fields (`zeldoc auth fields`). Also one key only, and read-only.
 
 ## Build & Verification Commands
 Run inside `flox activate`, in this order: `cargo fmt -> cargo clippy -> cargo test`.
@@ -62,7 +64,11 @@ src/
     models_service.rs       `ModelsService` trait + `ModelsServiceImpl`
     models_table.rs         table output
     data_transfer_objects/  `ModelDTO`, `ModelIdDTO`, `ModelModeDTO`, ... one per file
-  text_table.rs             aligned text tables (`models`, `usage`)
+  text_table.rs             aligned text tables (`models`, `usage`, `auth fields`)
+  terminal_text.rs          `printable`: server text made safe for a terminal
+  key_details/              `zeldoc auth fields`
+    key_details_command.rs, key_details_service.rs, key_details_text.rs
+    data_transfer_objects/  `KeyDetailsDTO`, `KeyFieldDTO`, `KeyFieldValueDTO`, ...
   usage/                    `zeldoc usage`
     usage_command.rs, usage_service.rs, usage_report_text.rs
     data_transfer_objects/  `UsageReportDTO`, `ModelUsageDTO`, `UsageTotalsDTO`, ...
@@ -111,6 +117,10 @@ A new feature gets its own folder with `<feature>_command.rs`, `<feature>_servic
   requested or pinned profile is an error, never a fall-through to another key: keys
   belong to different customers. Change the order only together with the README and
   `opencode-zeldoc`, which reads pins the same way.
+- **Text other people typed in is untrusted.** Key names, key field names and values are
+  set by an organization's admins: pass them through `terminal_text::printable` before
+  printing them as text, so an escape sequence or line break in one cannot control the
+  terminal. `--json` escapes them already.
 - **The API key never appears in arguments, logs or errors.** Read it from the environment, the
   credentials file, a hidden prompt or stdin, and keep it in an `ApiKeySecretDTO`, whose
   `Debug` is redacted. Show it only through `masked()`; `expose()` is for sending it and for

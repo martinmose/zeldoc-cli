@@ -71,6 +71,7 @@ setups keep working without a login.
 | `zeldoc auth use <profile>` | Makes a saved profile the default |
 | `zeldoc auth pin <profile>` | Pins the current folder to a profile (writes `.zeldoc-profile`) |
 | `zeldoc auth status` | Shows which key is in use (masked), why, and whether it works; exits 1 if not |
+| `zeldoc auth fields` | Shows the key fields your organization set on the key, such as its team or project |
 | `zeldoc auth token` | Prints the key, for tools that read `ZELDOC_API_KEY` |
 | `zeldoc auth logout` | Deletes the saved key of the profile in use |
 
@@ -182,6 +183,21 @@ program started from that shell, as with a hand-written `export`.
 
 After `zeldoc auth login` with a new key, open a new shell: shells that are already open
 keep the old value, and `ZELDOC_API_KEY` takes precedence over the saved key.
+
+## Show a key's fields
+
+```bash
+zeldoc auth fields
+zeldoc auth fields --all
+zeldoc auth fields --json
+```
+
+Organizations can label their API keys with fields, such as a team, a project or whether
+the key is private; their admins set them in the dashboard. `zeldoc auth fields` shows the
+key's name and each of the organization's fields with this key's value, from Zeldoc.ai's
+key endpoint (`GET /v1/zeldoc/key`). Only the key the CLI uses is shown; `--all` shows the
+key of every saved profile. `--json` prints each value as the API sends it: a select
+field's option key, with its label in `value_label`.
 
 ## List models
 
