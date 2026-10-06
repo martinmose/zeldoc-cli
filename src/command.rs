@@ -7,6 +7,7 @@ use crate::auth::auth_command::AuthCommand;
 use crate::credentials::data_transfer_objects::profile_name_dto::ProfileNameDTO;
 use crate::models::models_command::ModelsCommand;
 use crate::search::search_command::SearchCommand;
+use crate::update::update_command::UpdateCommand;
 use crate::usage::usage_command::UsageCommand;
 
 // Help text lives on the variants: clap shows it for `zeldoc <command> --help`.
@@ -35,9 +36,27 @@ pub enum Command {
     /// Zeldoc's own models are covered by the subscription and cost 0.
     /// Requests can take a minute to show up.
     Usage(UsageCommand),
+    /// Update zeldoc to the latest release
+    ///
+    /// Downloads the latest release's installer from GitHub and runs it, so the
+    /// new version replaces this one in the same folder. Works for copies
+    /// installed with the shell or PowerShell installer; a copy built with
+    /// `cargo install` or unpacked from a release archive by hand has to be
+    /// updated the same way it was installed. Exits with status 1 when the
+    /// update fails, and 0 when zeldoc is already the latest version.
+    ///
+    /// Other commands check for a newer release once a day and say so on
+    /// stderr, but only when run in a terminal; ZELDOC_NO_UPDATE_CHECK=1
+    /// turns that off.
+    Update(UpdateCommand),
 }
 
 impl Command {
+    /// `zeldoc update` reports on new releases itself.
+    pub fn is_update(&self) -> bool {
+        matches!(self, Self::Update(_))
+    }
+
     /// Run the command; `profile` is the profile asked for with `--profile`
     /// or ZELDOC_PROFILE.
     pub fn run(self, profile: Option<&ProfileNameDTO>) -> Result<ExitCode> {
@@ -46,6 +65,7 @@ impl Command {
             Self::Models(command) => command.run(profile),
             Self::Search(command) => command.run(profile),
             Self::Usage(command) => command.run(profile),
+            Self::Update(command) => command.run(),
         }
     }
 }

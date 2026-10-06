@@ -10,7 +10,8 @@ license = "MIT"
 # Argument parsing
 clap = { version = "4.6", features = ["derive", "env"] }
 
-# HTTP client (rustls, so builds need no system OpenSSL)
+# HTTP client (rustls, so builds need no system OpenSSL; the same version
+# axoupdater uses, so the binary carries one HTTP stack)
 reqwest = { version = "0.13", default-features = false, features = ["blocking", "json", "rustls"] }
 
 # Serialization
@@ -24,12 +25,17 @@ anyhow = "1.0"
 # Money as exact decimals (prices arrive as decimal strings)
 rust_decimal = "1.36"
 
-# Dates in usage reports
-chrono = { version = "0.4", default-features = false, features = ["serde"] }
+# Dates in usage reports and the update check
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 
 # Utilities
 dirs = "7.0"
 rpassword = "7.4"
+
+# `zeldoc update`: reinstalls with the release's own installer, using the
+# receipt the installer left behind; tokio runs its async API
+axoupdater = { version = "0.10", default-features = false, features = ["github_releases"] }
+tokio = { version = "1", default-features = false, features = ["rt", "net", "time"] }
 
 [dev-dependencies]
 tempfile = "3"

@@ -71,6 +71,11 @@ src/
     search_command.rs, search_service.rs, search_results_text.rs
     data_transfer_objects/  `SearchResponseDTO`, `SearchResultDTO`
     request_parameters/     `SearchParameters`, `TimeRange`
+  update/                   `zeldoc update`: reruns the release installer through axoupdater,
+                            using the receipt the installer wrote; no Zeldoc.ai API calls
+    update_command.rs, update_service.rs, update_outcome_text.rs, `UpdateError`, `UpdateOutcome`
+    update_notice.rs        the once-a-day "newer release" line on stderr, terminals only
+    data_transfer_objects/  `UpdateCheckDTO`, the cached check
 ```
 
 A new feature gets its own folder with `<feature>_command.rs`, `<feature>_service.rs` (trait +

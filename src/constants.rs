@@ -23,6 +23,8 @@ pub mod environment {
     pub const PROFILE: &str = "ZELDOC_PROFILE";
     /// Overrides where the saved key lives.
     pub const CONFIG_DIRECTORY: &str = "ZELDOC_CONFIG_DIR";
+    /// Any non-empty value turns off the daily check for a newer release.
+    pub const NO_UPDATE_CHECK: &str = "ZELDOC_NO_UPDATE_CHECK";
 }
 
 /// Files the CLI reads outside its config directory.

@@ -31,6 +31,23 @@ Releases have binaries for macOS (Apple silicon and Intel), Linux (x86_64 and AR
 Windows (x86_64); you can also download an archive from the release page yourself. To
 build from source instead: `cargo install --path .`
 
+## Update
+
+```bash
+zeldoc update            # install the latest release in place of this one
+zeldoc update --check    # only say whether a newer release exists
+```
+
+`zeldoc update` downloads the latest release's installer and runs it, so the new version
+replaces the old one in the same folder. It works for copies installed with the commands
+above. A copy built with `cargo install` or unpacked from an archive by hand is updated
+the way it was installed.
+
+Once a day, a command run in a terminal also checks GitHub for a newer release, in the
+background, and prints a line to stderr when there is one. Commands whose output goes to a
+pipe or a file, as in scripts and coding agents, never check. Set `ZELDOC_NO_UPDATE_CHECK=1`
+to turn the check off.
+
 ## Authenticate
 
 Save an API key once. It is checked against Zeldoc.ai before it is stored:
@@ -226,6 +243,7 @@ and keep personal or confidential information out of queries.
 | `ZELDOC_PROFILE` | | Saved profile to use, like `--profile` |
 | `ZELDOC_API_KEY` | | API key; used where no profile is picked by `--profile`, `ZELDOC_PROFILE` or a pin |
 | `ZELDOC_CONFIG_DIR` | platform config directory + `/zeldoc` | Where the saved key lives |
+| `ZELDOC_NO_UPDATE_CHECK` | | Any value turns off the daily check for a newer release |
 
 ## License
 
